@@ -5,6 +5,8 @@ type Props = {
 
 export default function ColorPicker({ selectedColor, onColorSelect }: Props) {
   const colors = [
+    'black',
+    'white',
     'red',
     'green',
     'blue',
@@ -13,8 +15,6 @@ export default function ColorPicker({ selectedColor, onColorSelect }: Props) {
     'purple',
     'pink',
     'brown',
-    'black',
-    'white',
     'gray',
     'silver',
     'gold',
@@ -35,10 +35,14 @@ export default function ColorPicker({ selectedColor, onColorSelect }: Props) {
               borderStyle: 'solid',
               borderWidth: 1,
               borderColor: 'black',
-              margin: 2,
               ...(color == selectedColor
-                ? { width: 40, height: 40, boxShadow: '2px 2px 10px' }
-                : { width: 36, height: 36 }),
+                ? {
+                    width: 40,
+                    height: 40,
+                    boxShadow: '0px 4px 10px #888',
+                    margin: 1,
+                  }
+                : { width: 36, height: 36, margin: 3 }),
             }}
             onClick={() => onColorSelect(color)}
           ></div>
