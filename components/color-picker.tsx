@@ -1,9 +1,12 @@
+import { useState } from 'react';
+
 type Props = {
   selectedColor: string;
   onColorSelect: (color: string) => void;
 };
 
-export default function ColorPicker({ selectedColor, onColorSelect }: Props) {
+export default function ColorPicker() {
+  const [primaryColor, setPrimaryColor] = useState('black');
   const colors = [
     'black',
     'white',
@@ -35,7 +38,8 @@ export default function ColorPicker({ selectedColor, onColorSelect }: Props) {
               borderStyle: 'solid',
               borderWidth: 1,
               borderColor: 'black',
-              ...(color == selectedColor
+              borderRadius: 4,
+              ...(color == primaryColor
                 ? {
                     width: 40,
                     height: 40,
@@ -44,7 +48,7 @@ export default function ColorPicker({ selectedColor, onColorSelect }: Props) {
                   }
                 : { width: 36, height: 36, margin: 3 }),
             }}
-            onClick={() => onColorSelect(color)}
+            onClick={() => setPrimaryColor(color)}
           ></div>
         );
       })}
