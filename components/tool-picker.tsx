@@ -1,18 +1,11 @@
-import { useState } from 'react';
+import { tools } from '../utils/constants';
 
 type Props = {
   selectedTool: string;
   onToolSelect: (tool: string) => void;
 };
 
-export default function ToolPicker() {
-  const [selectedTool, setSelectedTool] = useState('pencil');
-  const tools = [
-    { name: 'pencil', icon: { url: 'pencil.png', width: 36, height: 36 } },
-    { name: 'erasure', icon: { url: 'erasure.png', width: 36, height: 36 } },
-    { name: 'bucket', icon: { url: 'bucket.png', width: 36, height: 36 } },
-    { name: 'line', icon: { url: 'line.png', width: 36, height: 36 } },
-  ];
+export default function ToolPicker({ selectedTool, onToolSelect }: Props) {
   return (
     <div
       style={{
@@ -26,21 +19,18 @@ export default function ToolPicker() {
             key={tool.name}
             style={{
               border: 'solid 2px black',
-              width: 44,
-              height: 44,
-              margin: 3,
               padding: 8,
               borderRadius: 4,
               ...(tool.name == selectedTool
                 ? {
                     margin: 1,
-                    width: 46,
-                    height: 46,
+                    width: 48,
+                    height: 48,
                     boxShadow: '2px 0px 20px #888',
                   }
-                : {}),
+                : { width: 44, height: 44, margin: 3 }),
             }}
-            onClick={() => setSelectedTool(tool.name)}
+            onClick={() => onToolSelect(tool.name)}
           >
             <img
               style={{ maxWidth: '100%', maxHeight: '100%' }}

@@ -1,6 +1,6 @@
 'use client';
 
-import DrawingBoard from '@/components/drawing_board';
+import DrawingBoard from '@/components/drawing-board';
 import styles from './page.module.css';
 
 export default function Home() {
