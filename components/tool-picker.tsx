@@ -11,6 +11,7 @@ export default function ToolPicker({ selectedTool, onToolSelect }: Props) {
       style={{
         display: 'flex',
         flexDirection: 'column',
+        margin: 8,
       }}
     >
       {tools.map(tool => {
@@ -26,7 +27,7 @@ export default function ToolPicker({ selectedTool, onToolSelect }: Props) {
                     margin: 1,
                     width: 48,
                     height: 48,
-                    boxShadow: '2px 0px 20px #888',
+                    boxShadow: '-2px 0px 20px #888',
                   }
                 : { width: 44, height: 44, margin: 3 }),
             }}
