@@ -1,12 +1,19 @@
 import { useEffect, useRef } from 'react';
-import { tools } from '../utils/constants';
+import { tools } from '../lib/constants';
+import { firestore } from '@/lib/utils';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 type Props = {
   selectedColor: string;
   selectedTool: string;
+  docId: string;
 };
 
-export default function DBCanvas({ selectedColor, selectedTool }: Props) {
+export default function DBCanvas({
+  selectedColor,
+  selectedTool,
+  docId,
+}: Props) {
   const isDrawing = useRef(false);
   const canvasLayer1Ctx = useRef<CanvasRenderingContext2D | null | undefined>(
     null,
@@ -14,6 +21,8 @@ export default function DBCanvas({ selectedColor, selectedTool }: Props) {
   const canvasLayer2Ctx = useRef<CanvasRenderingContext2D | null | undefined>(
     null,
   );
+
+  const myId = useRef<string | null>(null);
 
   const startPoint = useRef({ x: 0, y: 0 });
 
@@ -33,13 +42,39 @@ export default function DBCanvas({ selectedColor, selectedTool }: Props) {
       canvasLayer1Ctx.current!.lineWidth = 16;
     }
   }, [selectedTool, selectedColor]);
+
+  useEffect(() => {
+    myId.current = crypto.randomUUID();
+    const unsub = onSnapshot(doc(firestore, 'sketch', docId), doc => {
+      const data = doc.data()!;
+      if (data.userId! != myId.current) {
+        const img = new Image();
+        img.src = data.imgDataUrl;
+        img.onload = () => {
+          canvasLayer1Ctx.current!.drawImage(img, 0, 0);
+        };
+      }
+    });
+    const intervalId = setInterval(() => {
+      const data = canvasLayer1Ctx.current!.canvas.toDataURL();
+      setDoc(
+        doc(firestore, 'sketch', docId),
+        { userId: myId.current, imgDataUrl: data },
+        { merge: true },
+      );
+    }, 2000);
+    return () => {
+      clearInterval(intervalId);
+      unsub();
+    };
+  }, []);
   return (
     <div style={{ position: 'relative' }}>
       <canvas
         ref={canvas => (canvasLayer1Ctx.current = canvas?.getContext('2d'))}
         style={{
           border: '1px solid black',
-          cursor: `url(${
+          cursor: `url(/${
             tools.find(t => t.name == selectedTool)?.icon.url.split('.')[0]
           }_cursor.png) 0 28, auto`,
         }}
@@ -119,7 +154,9 @@ export default function DBCanvas({ selectedColor, selectedTool }: Props) {
           pointerEvents: selectedTool == 'line' ? 'auto' : 'none',
           border: '1px solid black',
           cursor:
-            selectedTool == 'line' ? `url(line_cursor.png) 0 28, auto` : 'auto',
+            selectedTool == 'line'
+              ? `url(/line_cursor.png) 0 28, auto`
+              : 'auto',
           zIndex: 5,
         }}
         width={640}

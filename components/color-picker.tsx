@@ -1,4 +1,4 @@
-import { colors } from '../utils/constants';
+import { colors } from '../lib/constants';
 
 type Props = {
   selectedColor: string;

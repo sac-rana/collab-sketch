@@ -1,4 +1,5 @@
-import { tools } from '../utils/constants';
+import { tools } from '../lib/constants';
+import Image from 'next/image';
 
 type Props = {
   selectedTool: string;
@@ -19,24 +20,24 @@ export default function ToolPicker({ selectedTool, onToolSelect }: Props) {
           <div
             key={tool.name}
             style={{
+              position: 'relative',
               border: 'solid 2px black',
               padding: 8,
               borderRadius: 4,
               ...(tool.name == selectedTool
                 ? {
                     margin: 1,
-                    width: 48,
-                    height: 48,
                     boxShadow: '-2px 0px 20px #888',
                   }
-                : { width: 44, height: 44, margin: 3 }),
+                : { margin: 5 }),
             }}
             onClick={() => onToolSelect(tool.name)}
           >
-            <img
-              style={{ maxWidth: '100%', maxHeight: '100%' }}
-              src={tool.icon.url}
+            <Image
+              src={'/' + tool.icon.url}
               alt={`${tool.name}-tool`}
+              width={tool.name == selectedTool ? 40 : 32}
+              height={tool.name == selectedTool ? 40 : 32}
             />
           </div>
         );
