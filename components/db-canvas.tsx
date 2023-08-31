@@ -46,8 +46,8 @@ export default function DBCanvas({
   useEffect(() => {
     myId.current = crypto.randomUUID();
     const unsub = onSnapshot(doc(firestore, 'sketch', docId), doc => {
-      const data = doc.data()!;
-      if (data.userId! != myId.current) {
+      const data = doc.data();
+      if (data && data.userId != myId.current) {
         const img = new Image();
         img.src = data.imgDataUrl;
         img.onload = () => {
