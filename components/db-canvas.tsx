@@ -23,6 +23,7 @@ export default function DBCanvas({
   );
 
   const myId = useRef<string | null>(null);
+  const hasChanged = useRef(false);
 
   const startPoint = useRef({ x: 0, y: 0 });
 
@@ -56,18 +57,21 @@ export default function DBCanvas({
       }
     });
     const intervalId = setInterval(() => {
+      if (!hasChanged.current) return;
+      hasChanged.current = false;
       const data = canvasLayer1Ctx.current!.canvas.toDataURL();
       setDoc(
         doc(firestore, 'sketch', docId),
         { userId: myId.current, imgDataUrl: data },
         { merge: true },
       );
-    }, 2000);
+    }, 1000);
     return () => {
       clearInterval(intervalId);
       unsub();
     };
   }, []);
+
   return (
     <div style={{ position: 'relative' }}>
       <canvas
@@ -89,6 +93,7 @@ export default function DBCanvas({
               e.nativeEvent.offsetY,
             );
           }
+          hasChanged.current = true;
         }}
         onMouseMove={e => {
           if (!isDrawing.current) return;
@@ -99,6 +104,7 @@ export default function DBCanvas({
             );
             canvasLayer1Ctx.current?.stroke();
           }
+          hasChanged.current = true;
         }}
         onMouseUp={e => {
           isDrawing.current = false;
@@ -139,6 +145,7 @@ export default function DBCanvas({
             floodFill(x, y, targetColor, { r, g, b }, imgData);
             canvasLayer1Ctx.current!.putImageData(imgData, 0, 0);
           }
+          hasChanged.current = true;
         }}
         onMouseLeave={e => {
           isDrawing.current = false;
@@ -189,6 +196,7 @@ export default function DBCanvas({
             0,
           );
           canvasLayer2Ctx.current!.clearRect(0, 0, 640, 420);
+          hasChanged.current = true;
         }}
       ></canvas>
     </div>
