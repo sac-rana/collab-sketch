@@ -14,7 +14,6 @@ export default function DBCanvas({
   selectedTool,
   docId,
 }: Props) {
-  const isDrawing = useRef(false);
   const canvasLayer1Ctx = useRef<CanvasRenderingContext2D | null | undefined>(
     null,
   );
@@ -22,10 +21,17 @@ export default function DBCanvas({
     null,
   );
 
-  const myId = useRef<string | null>(null);
-  const hasChanged = useRef(false);
-
-  const startPoint = useRef({ x: 0, y: 0 });
+  const state = useRef<{
+    isDrawing: boolean;
+    myId: string | null;
+    hasChanged: boolean;
+    startPoint: { x: number; y: number };
+  }>({
+    isDrawing: false,
+    myId: null,
+    hasChanged: false,
+    startPoint: { x: 0, y: 0 },
+  });
 
   useEffect(() => {
     canvasLayer1Ctx.current!.fillStyle = selectedColor;
@@ -44,10 +50,10 @@ export default function DBCanvas({
   }, [selectedTool, selectedColor]);
 
   useEffect(() => {
-    myId.current = crypto.randomUUID();
+    state.current.myId = crypto.randomUUID();
     const unsub = onSnapshot(doc(firestore, 'sketch', docId), doc => {
       const data = doc.data();
-      if (data && data.userId != myId.current) {
+      if (data && data.userId != state.current.myId) {
         const img = new Image();
         img.src = data.imgDataUrl;
         img.onload = () => {
@@ -56,12 +62,12 @@ export default function DBCanvas({
       }
     });
     const intervalId = setInterval(() => {
-      if (!hasChanged.current) return;
-      hasChanged.current = false;
+      if (!state.current.hasChanged) return;
+      state.current.hasChanged = false;
       const data = canvasLayer1Ctx.current!.canvas.toDataURL();
       setDoc(
         doc(firestore, 'sketch', docId),
-        { userId: myId.current, imgDataUrl: data },
+        { userId: state.current.myId, imgDataUrl: data },
         { merge: true },
       );
     }, 1000);
@@ -84,7 +90,7 @@ export default function DBCanvas({
         width={640}
         height={420}
         onMouseDown={e => {
-          isDrawing.current = true;
+          state.current.isDrawing = true;
           if (selectedTool == 'pencil' || selectedTool == 'eraser') {
             canvasLayer1Ctx.current!.beginPath();
             canvasLayer1Ctx.current!.lineTo(
@@ -92,10 +98,10 @@ export default function DBCanvas({
               e.nativeEvent.offsetY,
             );
           }
-          hasChanged.current = true;
+          state.current.hasChanged = true;
         }}
         onMouseMove={e => {
-          if (!isDrawing.current) return;
+          if (!state.current.isDrawing) return;
           if (selectedTool == 'pencil' || selectedTool == 'eraser') {
             canvasLayer1Ctx.current?.lineTo(
               e.nativeEvent.offsetX,
@@ -103,10 +109,10 @@ export default function DBCanvas({
             );
             canvasLayer1Ctx.current?.stroke();
           }
-          hasChanged.current = true;
+          state.current.hasChanged = true;
         }}
         onMouseUp={e => {
-          isDrawing.current = false;
+          state.current.isDrawing = false;
         }}
         onClick={e => {
           if (selectedTool == 'pencil' || selectedTool == 'eraser') {
@@ -144,10 +150,10 @@ export default function DBCanvas({
             floodFill(x, y, targetColor, { r, g, b }, imgData);
             canvasLayer1Ctx.current!.putImageData(imgData, 0, 0);
           }
-          hasChanged.current = true;
+          state.current.hasChanged = true;
         }}
         onMouseLeave={e => {
-          isDrawing.current = false;
+          state.current.isDrawing = false;
         }}
       ></canvas>
 
@@ -165,18 +171,18 @@ export default function DBCanvas({
         width={640}
         height={420}
         onMouseDown={e => {
-          isDrawing.current = true;
-          startPoint.current.x = e.nativeEvent.offsetX;
-          startPoint.current.y = e.nativeEvent.offsetY;
+          state.current.isDrawing = true;
+          state.current.startPoint.x = e.nativeEvent.offsetX;
+          state.current.startPoint.y = e.nativeEvent.offsetY;
         }}
         onMouseMove={e => {
-          if (!isDrawing.current) return;
+          if (!state.current.isDrawing) return;
           canvasLayer2Ctx.current!.clearRect(0, 0, 640, 420);
           if (selectedTool == 'line') {
             canvasLayer2Ctx.current!.beginPath();
             canvasLayer2Ctx.current!.moveTo(
-              startPoint.current.x,
-              startPoint.current.y,
+              state.current.startPoint.x,
+              state.current.startPoint.y,
             );
             canvasLayer2Ctx.current!.lineTo(
               e.nativeEvent.offsetX,
@@ -185,10 +191,10 @@ export default function DBCanvas({
             canvasLayer2Ctx.current!.stroke();
           } else if (selectedTool == 'rect') {
             canvasLayer2Ctx.current!.strokeRect(
-              startPoint.current.x,
-              startPoint.current.y,
-              e.nativeEvent.offsetX - startPoint.current.x,
-              e.nativeEvent.offsetY - startPoint.current.y,
+              state.current.startPoint.x,
+              state.current.startPoint.y,
+              e.nativeEvent.offsetX - state.current.startPoint.x,
+              e.nativeEvent.offsetY - state.current.startPoint.y,
             );
           } else if (selectedTool == 'circle') {
             canvasLayer2Ctx.current!.beginPath();
@@ -197,18 +203,18 @@ export default function DBCanvas({
               e.nativeEvent.offsetY,
             );
             canvasLayer2Ctx.current!.lineTo(
-              startPoint.current.x,
-              startPoint.current.y,
+              state.current.startPoint.x,
+              state.current.startPoint.y,
             );
             canvasLayer2Ctx.current!.stroke();
             canvasLayer2Ctx.current!.beginPath();
             canvasLayer2Ctx.current!.arc(
-              startPoint.current.x,
-              startPoint.current.y,
+              state.current.startPoint.x,
+              state.current.startPoint.y,
               Math.floor(
                 Math.sqrt(
-                  (e.nativeEvent.offsetX - startPoint.current.x) ** 2 +
-                    (e.nativeEvent.offsetY - startPoint.current.y) ** 2,
+                  (e.nativeEvent.offsetX - state.current.startPoint.x) ** 2 +
+                    (e.nativeEvent.offsetY - state.current.startPoint.y) ** 2,
                 ),
               ),
               0,
@@ -218,15 +224,15 @@ export default function DBCanvas({
           }
         }}
         onMouseUp={e => {
-          if (!isDrawing.current) return;
-          isDrawing.current = false;
+          if (!state.current.isDrawing) return;
+          state.current.isDrawing = false;
           canvasLayer1Ctx.current!.drawImage(
             canvasLayer2Ctx.current!.canvas,
             0,
             0,
           );
           canvasLayer2Ctx.current!.clearRect(0, 0, 640, 420);
-          hasChanged.current = true;
+          state.current.hasChanged = true;
         }}
       ></canvas>
     </div>
