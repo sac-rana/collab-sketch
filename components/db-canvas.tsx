@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { tools } from '../lib/constants';
+import { shapes, tools } from '@/lib/constants';
 import { firestore } from '@/lib/utils';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
@@ -36,8 +36,7 @@ export default function DBCanvas({
 
     canvasLayer1Ctx.current!.lineWidth = 2;
     canvasLayer2Ctx.current!.lineWidth = 2;
-
-    if (selectedTool == 'erasure') {
+    if (selectedTool == 'eraser') {
       canvasLayer1Ctx.current!.fillStyle = 'white';
       canvasLayer1Ctx.current!.strokeStyle = 'white';
       canvasLayer1Ctx.current!.lineWidth = 16;
@@ -78,15 +77,15 @@ export default function DBCanvas({
         ref={canvas => (canvasLayer1Ctx.current = canvas?.getContext('2d'))}
         style={{
           border: '1px solid black',
-          cursor: `url(/${
-            tools.find(t => t.name == selectedTool)?.icon.url.split('.')[0]
-          }_cursor.png) 0 28, auto`,
+          cursor: tools.has(selectedTool)
+            ? `url(/${tools.get(selectedTool)?.cursor}) 0 28, auto`
+            : 'auto',
         }}
         width={640}
         height={420}
         onMouseDown={e => {
           isDrawing.current = true;
-          if (selectedTool == 'pencil' || selectedTool == 'erasure') {
+          if (selectedTool == 'pencil' || selectedTool == 'eraser') {
             canvasLayer1Ctx.current!.beginPath();
             canvasLayer1Ctx.current!.lineTo(
               e.nativeEvent.offsetX,
@@ -97,7 +96,7 @@ export default function DBCanvas({
         }}
         onMouseMove={e => {
           if (!isDrawing.current) return;
-          if (selectedTool == 'pencil' || selectedTool == 'erasure') {
+          if (selectedTool == 'pencil' || selectedTool == 'eraser') {
             canvasLayer1Ctx.current?.lineTo(
               e.nativeEvent.offsetX,
               e.nativeEvent.offsetY,
@@ -110,7 +109,7 @@ export default function DBCanvas({
           isDrawing.current = false;
         }}
         onClick={e => {
-          if (selectedTool == 'pencil' || selectedTool == 'erasure') {
+          if (selectedTool == 'pencil' || selectedTool == 'eraser') {
             canvasLayer1Ctx.current!.beginPath();
             canvasLayer1Ctx.current!.arc(
               e.nativeEvent.offsetX,
@@ -158,12 +157,9 @@ export default function DBCanvas({
           position: 'absolute',
           top: 0,
           left: 0,
-          pointerEvents: selectedTool == 'line' ? 'auto' : 'none',
+          pointerEvents: shapes.has(selectedTool) ? 'auto' : 'none',
           border: '1px solid black',
-          cursor:
-            selectedTool == 'line'
-              ? `url(/line_cursor.png) 0 28, auto`
-              : 'auto',
+          cursor: 'crosshair',
           zIndex: 5,
         }}
         width={640}
@@ -176,16 +172,50 @@ export default function DBCanvas({
         onMouseMove={e => {
           if (!isDrawing.current) return;
           canvasLayer2Ctx.current!.clearRect(0, 0, 640, 420);
-          canvasLayer2Ctx.current!.beginPath();
-          canvasLayer2Ctx.current!.moveTo(
-            startPoint.current.x,
-            startPoint.current.y,
-          );
-          canvasLayer2Ctx.current!.lineTo(
-            e.nativeEvent.offsetX,
-            e.nativeEvent.offsetY,
-          );
-          canvasLayer2Ctx.current!.stroke();
+          if (selectedTool == 'line') {
+            canvasLayer2Ctx.current!.beginPath();
+            canvasLayer2Ctx.current!.moveTo(
+              startPoint.current.x,
+              startPoint.current.y,
+            );
+            canvasLayer2Ctx.current!.lineTo(
+              e.nativeEvent.offsetX,
+              e.nativeEvent.offsetY,
+            );
+            canvasLayer2Ctx.current!.stroke();
+          } else if (selectedTool == 'rect') {
+            canvasLayer2Ctx.current!.strokeRect(
+              startPoint.current.x,
+              startPoint.current.y,
+              e.nativeEvent.offsetX - startPoint.current.x,
+              e.nativeEvent.offsetY - startPoint.current.y,
+            );
+          } else if (selectedTool == 'circle') {
+            canvasLayer2Ctx.current!.beginPath();
+            canvasLayer2Ctx.current!.moveTo(
+              e.nativeEvent.offsetX,
+              e.nativeEvent.offsetY,
+            );
+            canvasLayer2Ctx.current!.lineTo(
+              startPoint.current.x,
+              startPoint.current.y,
+            );
+            canvasLayer2Ctx.current!.stroke();
+            canvasLayer2Ctx.current!.beginPath();
+            canvasLayer2Ctx.current!.arc(
+              startPoint.current.x,
+              startPoint.current.y,
+              Math.floor(
+                Math.sqrt(
+                  (e.nativeEvent.offsetX - startPoint.current.x) ** 2 +
+                    (e.nativeEvent.offsetY - startPoint.current.y) ** 2,
+                ),
+              ),
+              0,
+              7,
+            );
+            canvasLayer2Ctx.current!.stroke();
+          }
         }}
         onMouseUp={e => {
           if (!isDrawing.current) return;

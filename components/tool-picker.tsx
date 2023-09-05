@@ -15,29 +15,29 @@ export default function ToolPicker({ selectedTool, onToolSelect }: Props) {
         margin: 8,
       }}
     >
-      {tools.map(tool => {
+      {Array.from(tools).map(([tool, { icon }]) => {
         return (
           <div
-            key={tool.name}
+            key={tool}
             style={{
               position: 'relative',
               border: 'solid 2px black',
               padding: 8,
               borderRadius: 4,
-              ...(tool.name == selectedTool
+              ...(tool == selectedTool
                 ? {
                     margin: 1,
                     boxShadow: '-2px 0px 20px #888',
                   }
                 : { margin: 5 }),
             }}
-            onClick={() => onToolSelect(tool.name)}
+            onClick={() => onToolSelect(tool)}
           >
             <Image
-              src={'/' + tool.icon.url}
-              alt={`${tool.name}-tool`}
-              width={tool.name == selectedTool ? 40 : 32}
-              height={tool.name == selectedTool ? 40 : 32}
+              src={'/' + icon}
+              alt={tool}
+              width={tool == selectedTool ? 40 : 32}
+              height={tool == selectedTool ? 40 : 32}
             />
           </div>
         );
