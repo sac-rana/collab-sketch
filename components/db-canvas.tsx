@@ -75,7 +75,7 @@ export default function DBCanvas({
       clearInterval(intervalId);
       unsub();
     };
-  }, []);
+  }, [docId]);
 
   return (
     <div style={{ position: 'relative' }}>

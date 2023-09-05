@@ -24,11 +24,20 @@ export const colors = [
 export const shapes = new Map([
   [
     'line',
-    <line x1='2' y1='2' x2='30' y2='28' stroke='black' strokeWidth={2} />,
+    <line
+      key='line'
+      x1='2'
+      y1='2'
+      x2='30'
+      y2='28'
+      stroke='black'
+      strokeWidth={2}
+    />,
   ],
   [
     'circle',
     <circle
+      key='circle'
       cx='16'
       cy='15'
       r='12'
@@ -40,6 +49,7 @@ export const shapes = new Map([
   [
     'rect',
     <rect
+      key='rect'
       x='3'
       y='3'
       width='26'
